@@ -123,6 +123,15 @@ button{font-family:var(--sans);border:none;cursor:pointer;color:inherit}
 .durOpt.on b{color:var(--bright)}
 .durOpt.on span{color:var(--gold)}
 
+/* ---------- free play ---------- */
+#fpGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+#fpGrid .durOpt b{font-family:var(--sans);font-size:22px;line-height:1.2}
+#fpExit{display:block;margin:2px auto 14px;padding:10px 20px;border-radius:99px;
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--dim);background:linear-gradient(150deg,#1D1A14,#14110C);
+  border:1px solid var(--hair);box-shadow:var(--card-sh-sm);transition:transform .12s}
+#fpExit:active{transform:scale(.95)}
+
 /* ---------- slider ---------- */
 .fogVal{font-family:var(--serif);font-style:italic;font-size:64px;font-weight:500;text-align:center;
   color:var(--bright);margin:8px 0 0;text-shadow:0 0 40px rgba(244,164,55,.35)}
@@ -299,6 +308,7 @@ textarea:focus{outline:none;border-color:rgba(244,164,55,.45);box-shadow:var(--p
   <main>
     <!-- ============ TODAY ============ -->
     <section id="view-today">
+      <button id="fpExit" class="hidden">✕ End practice</button>
       <div id="todayIdle">
         <div class="card">
           <div class="eyebrow" id="todayDate"></div>
@@ -314,6 +324,16 @@ textarea:focus{outline:none;border-color:rgba(244,164,55,.45);box-shadow:var(--p
           <div id="stageList" style="margin-top:10px"></div>
           <button class="btn" id="btnStart">Begin today's session</button>
           <button class="btn ghost hidden" id="btnResume">Resume session</button>
+        </div>
+        <div class="card">
+          <div class="eyebrow">Free play</div>
+          <h2 class="ritual">Pick any game</h2>
+          <p class="sub">Play any exercise on its own, in any order. Practice doesn't affect your streak or N-level. Quiz &amp; sudoku live in Drills.</p>
+          <div id="fpGrid">
+            <button class="durOpt" data-g="breath"><b>🌬️</b><span>breathe</span></button>
+            <button class="durOpt" data-g="schulte"><b>🔢</b><span>schulte</span></button>
+            <button class="durOpt" data-g="nback"><b>🧠</b><span>n-back</span></button>
+          </div>
         </div>
         <div class="card" id="doneToday" style="display:none">
           <div class="eyebrow">Today</div>
@@ -709,6 +729,7 @@ function lastNLevel(){
 
 /* ================= flow ================= */
 $('btnStart').onclick = () => {
+  freePlay = false; $('fpExit').classList.add('hidden');
   cur = { date: todayKey(), startedAt: Date.now(), dur: settings.dur, plan: planFor(settings.dur),
           fogPre:null, fogPost:null, sleep:null,
           breath:null, schulte:[], schErrors:0, nb:[], nLevel:lastNLevel(), nNext:null,
@@ -716,6 +737,30 @@ $('btnStart').onclick = () => {
   stage = 0; setupCheck(false); showStage();
 };
 function markStageDone(n){ const r=document.querySelector('.stageRow[data-st="'+n+'"]'); if(r) r.classList.add('done'); }
+
+/* ---- free play: any game, any order ---- */
+let freePlay = false;
+function startPractice(game){
+  freePlay = true;
+  cur = { practice:true, date: todayKey(), plan: planFor(settings.dur),
+          nLevel:lastNLevel(), nb:[], schulte:[], schErrors:0 };
+  $('fpExit').classList.remove('hidden');
+  if (game === 'breath'){ stage = 1; setupBreath(); }
+  else if (game === 'schulte'){ stage = 2; setupSchulte(); }
+  else { stage = 3; setupNback(); }
+  showStage();
+}
+function endPractice(msg){
+  freePlay = false;
+  clearInterval(brTimerId); clearInterval(brPhaseId); clearInterval(schTick);
+  if (nb && nb.timer) clearTimeout(nb.timer);
+  try{ speechSynthesis.cancel(); }catch(e){}
+  $('fpExit').classList.add('hidden');
+  stage = -1; cur = null; refreshHome(); showStage();
+  if (msg) toast(msg);
+}
+document.querySelectorAll('#fpGrid button').forEach(b=>{ b.onclick = () => startPractice(b.dataset.g); });
+$('fpExit').onclick = () => endPractice();
 
 /* ---- check in / out ---- */
 let fogVal = 5;
@@ -796,7 +841,9 @@ function runBreath(pattern, totalSec){
 }
 function endBreath(done){
   clearInterval(brTimerId); clearInterval(brPhaseId);
-  cur.breath = done; markStageDone(1);
+  cur.breath = done;
+  if (freePlay) return endPractice('🌬️ Breath practice complete');
+  markStageDone(1);
   stage = 2; setupSchulte(); showStage();
 }
 $('btnBreathSkip').onclick = () => endBreath(cur.plan.brMins*60 - parseTimer());
@@ -833,7 +880,7 @@ function schTap(btn,n){
       $('schTimes').textContent = cur.schulte.map(x=>x+'s').join(' · ');
       $('schResults').classList.remove('hidden');
       $('schulteGrid').style.display='none';
-      $('btnSchNext').textContent = schRound >= cur.plan.rounds ? 'Continue to N-Back' : 'Next round';
+      $('btnSchNext').textContent = schRound >= cur.plan.rounds ? (freePlay ? 'Finish practice' : 'Continue to N-Back') : 'Next round';
     }
   } else {
     schErr++; $('schErr').textContent = schErr;
@@ -841,7 +888,10 @@ function schTap(btn,n){
   }
 }
 $('btnSchNext').onclick = () => {
-  if (schRound >= cur.plan.rounds){ markStageDone(2); stage = 3; setupNback(); showStage(); }
+  if (schRound >= cur.plan.rounds){
+    if (freePlay) return endPractice('🔢 Schulte practice — best '+Math.min(...cur.schulte)+'s');
+    markStageDone(2); stage = 3; setupNback(); showStage();
+  }
   else startSchRound();
 };
 
@@ -905,12 +955,13 @@ function nbBlockDone(){
   const avg = (accP+accS)/2;
   $('nbAdvice').textContent = avg>=80 ? 'Sharp. The next session will level up.' : avg<50 ? "Tough one — tomorrow eases off a notch. That's how training works." : 'Solid block. Hold this level and push accuracy.';
   $('btnNbNext').textContent = nb.blockNo >= cur.plan.blocks
-    ? (cur.plan.journal ? 'Continue to Reflect' : 'Continue to check out')
+    ? (freePlay ? 'Finish practice' : (cur.plan.journal ? 'Continue to Reflect' : 'Continue to check out'))
     : 'Start block '+(nb.blockNo+1)+' of '+cur.plan.blocks;
 }
 $('btnNbNext').onclick = () => {
   if (nb.blockNo >= cur.plan.blocks){
     const avg = cur.nb.reduce((a,b)=>a+(b.accP+b.accS)/2,0)/cur.nb.length;
+    if (freePlay) return endPractice('🧠 N-Back practice — '+Math.round(avg)+'% accuracy');
     cur.nNext = avg>=80 ? cur.nLevel+1 : (avg<50 ? Math.max(1, cur.nLevel-1) : cur.nLevel);
     markStageDone(3);
     if (cur.plan.journal){ stage = 4; $('jPrompt').textContent = cur.prompt; $('jText').value=''; }
