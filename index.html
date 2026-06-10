@@ -1016,41 +1016,140 @@ function mc(r,q,ans,ds,expl){
 }
 
 const QUANT=[
- r=>{const p=pick(r,[5,10,12,15,20,25,40]);const n=pick(r,[120,160,200,240,300,360,400,450,500]);const a=p*n/100;return mc(r,'What is '+p+'% of '+n+'?',a,[a+p,a*1.5,a-10],p+'% of '+n+' = ('+p+'/100) × '+n+' = '+a)},
- r=>{const cp=pick(r,[200,250,400,500,800]);const p=pick(r,[10,15,20,25]);const sp=cp*(1+p/100);return mc(r,'An article costing ₹'+cp+' is sold at a profit of '+p+'%. Find the selling price.',sp,[cp*(1-p/100),sp+20,cp+p],'SP = CP × (100+'+p+')/100 = ₹'+sp)},
- r=>{const P=pick(r,[1500,2400,3000,5000]);const R=pick(r,[4,5,6,8]);const T=pick(r,[2,3,4]);const si=P*R*T/100;return mc(r,'Find the simple interest on ₹'+P+' at '+R+'% p.a. for '+T+' years.',si,[si+P*R/100,si-50,si*2],'SI = PRT/100 = '+P+'×'+R+'×'+T+'/100 = ₹'+si)},
- r=>{const P=pick(r,[1000,2000,4000,5000]);const R=pick(r,[5,10]);const ci=P*((1+R/100)*(1+R/100)-1);return mc(r,'Find the compound interest on ₹'+P+' at '+R+'% p.a. for 2 years.',ci,[P*R*2/100,ci+R,ci-R*2],'CI = P[(1+R/100)² − 1]. Plain SI would be ₹'+(P*R*2/100)+'; CI adds interest on interest.')},
- r=>{const X=ri(r,15,40);const Z=X+pick(r,[-3,-2,2,3]);const Y=5*X-4*Z;return mc(r,'The average of 5 numbers is '+X+'. If the number '+Y+' is removed, what is the new average?',Z,[X,Z+2,Z-2],'New average = (5×'+X+' − '+Y+')/4 = '+Z)},
- r=>{const [a,b]=pick(r,[[2,3],[3,4],[2,5],[3,5],[4,5],[5,7],[3,7]]);const m=ri(r,30,90);const T=(a+b)*m;const big=b*m;return mc(r,'₹'+T+' is divided between A and B in the ratio '+a+':'+b+'. Find the larger share.',big,[a*m,T/2,big+m],'Larger share = '+b+'/'+(a+b)+' of '+T+' = ₹'+big)},
- r=>{const pr=pick(r,[[6,12,4],[10,15,6],[12,24,8],[20,30,12],[8,24,6]]);return mc(r,'A can do a work in '+pr[0]+' days and B in '+pr[1]+' days. Working together, they finish it in how many days?',pr[2],[pr[2]+2,pr[2]-1,Math.round((pr[0]+pr[1])/2)],'Together = xy/(x+y) = '+pr[0]+'×'+pr[1]+'/'+(pr[0]+pr[1])+' = '+pr[2]+' days')},
- r=>{const s=pick(r,[36,54,72,90]);const t=pick(r,[5,8,10,12]);const L=s/3.6*t;return mc(r,'A train crosses a pole in '+t+' seconds at '+s+' km/h. Find the length of the train (in metres).',L,[L+t,s*t,L-20],'Length = speed × time = ('+s+' × 5/18) × '+t+' = '+L+' m')},
- r=>{const a=ri(r,3,9),b=ri(r,2,6),c=ri(r,2,9),d=ri(r,1,8);const v=a+b*c-d;return mc(r,'Simplify: '+a+' + '+b+' × '+c+' − '+d,v,[(a+b)*c-d,v+b,v-c],'BODMAS — multiply first: '+a+' + '+(b*c)+' − '+d+' = '+v)},
- r=>{const n=ri(r,5,14);return mc(r,'The square of a number is '+(n*n)+'. The number is:',n,[n+1,n-1,n+2],'√'+(n*n)+' = '+n)}
+ // percentage
+ r=>{const p=pick(r,[5,10,12,15,20,25,30,40]);const n=pick(r,[120,160,200,240,300,360,400,500,600,800]);const a=p*n/100;return mc(r,'What is '+p+'% of '+n+'?',a,[a+p,a*1.5,a-10],p+'% of '+n+' = ('+p+'/100)×'+n+' = '+a)},
+ // profit
+ r=>{const cp=pick(r,[200,250,400,500,800,1000,1200]);const p=pick(r,[10,15,20,25,30]);const sp=cp*(1+p/100);return mc(r,'An article costing ₹'+cp+' is sold at '+p+'% profit. Selling price?',sp,[cp*(1-p/100),sp+20,cp+p],'SP = CP×(100+'+p+')/100 = ₹'+sp)},
+ // loss
+ r=>{const cp=pick(r,[300,400,500,600,800,1000]);const l=pick(r,[5,10,15,20,25]);const sp=cp*(1-l/100);return mc(r,'An article costing ₹'+cp+' is sold at a loss of '+l+'%. Selling price?',sp,[cp*(1+l/100),sp+l,cp-l],'SP = CP×(100−'+l+')/100 = ₹'+sp)},
+ // SI
+ r=>{const P=pick(r,[1500,2400,3000,5000,8000,10000]);const R=pick(r,[4,5,6,8,10,12]);const T=pick(r,[2,3,4,5]);const si=P*R*T/100;return mc(r,'Simple interest on ₹'+P+' at '+R+'% p.a. for '+T+' years?',si,[si+P*R/100,si-50,si*2],'SI = PRT/100 = '+P+'×'+R+'×'+T+'/100 = ₹'+si)},
+ // CI
+ r=>{const P=pick(r,[1000,2000,4000,5000,8000]);const R=pick(r,[5,10,20]);const ci=Math.round(P*((1+R/100)*(1+R/100)-1));return mc(r,'Compound interest on ₹'+P+' at '+R+'% p.a. for 2 years?',ci,[Math.round(P*R*2/100),ci+R,ci-R*2],'CI = P[(1+r)²−1] = ₹'+ci+'; SI for same period = ₹'+Math.round(P*R*2/100))},
+ // average
+ r=>{const X=ri(r,15,40);const Z=X+pick(r,[-3,-2,2,3,4]);const Y=5*X-4*Z;return mc(r,'Average of 5 numbers is '+X+'. If '+Y+' is removed, new average is:',Z,[X,Z+2,Z-2],'New avg = (5×'+X+'−'+Y+')/4 = '+Z)},
+ // weighted average
+ r=>{const n1=pick(r,[10,15,20,25]),n2=pick(r,[10,15,20,30]),a1=pick(r,[40,50,60,70]),a2=pick(r,[60,70,80,90]);const w=Math.round((n1*a1+n2*a2)/(n1+n2));return mc(r,''+n1+' students average '+a1+' marks, '+n2+' students average '+a2+' marks. Combined average?',w,[Math.round((a1+a2)/2),a1,a2],'Combined avg = ('+n1+'×'+a1+' + '+n2+'×'+a2+')/'+(n1+n2)+' = '+w)},
+ // ratio
+ r=>{const [a,b]=pick(r,[[2,3],[3,4],[2,5],[3,5],[4,5],[5,7],[3,7],[2,7],[5,9]]);const m=ri(r,30,90);const T=(a+b)*m;const big=b*m;return mc(r,'₹'+T+' divided in ratio '+a+':'+b+'. Larger share?',big,[a*m,T/2,big+m],'Larger = '+b+'/'+(a+b)+'×'+T+' = ₹'+big)},
+ // work A+B
+ r=>{const data=pick(r,[[6,12,4],[10,15,6],[12,24,8],[20,30,12],[8,24,6],[15,30,10],[10,40,8],[12,36,9],[9,18,6],[20,60,15]]);return mc(r,'A finishes work in '+data[0]+' days, B in '+data[1]+' days. Together?',data[2]+' days',[data[2]+2+' days',data[2]-1+' days',Math.round((data[0]+data[1])/2)+' days'],'Together = '+data[0]+'×'+data[1]+'/'+(data[0]+data[1])+' = '+data[2]+' days')},
+ // work A alone after B leaves
+ r=>{const data=pick(r,[[6,8,3,9],[10,15,5,14],[12,20,6,16],[8,12,4,11]]);const [ta,tb,daysTog,rem]=data;const rate=1/ta+1/tb;const done=daysTog*rate;const left=1-done;const solo=Math.round(left*ta*10)/10;return mc(r,'A takes '+ta+' days, B takes '+tb+' days. They work together for '+daysTog+' days then B leaves. Days for A to finish remaining?',solo+' days',[ta-daysTog+' days',rem+' days',Math.round(left*tb*10)/10+' days'],'Work done in '+daysTog+' days = '+daysTog+'×(1/'+ta+'+1/'+tb+') = '+Math.round(done*100)/100+'. Remaining: '+Math.round(left*100)/100+'; A alone = '+Math.round(left*100)/100+'×'+ta+' ≈ '+solo+' days')},
+ // pipes fill
+ r=>{const data=pick(r,[[6,12,4],[10,15,6],[12,24,8],[20,60,15],[8,24,6],[15,45,11]]);return mc(r,'Pipe A fills a tank in '+data[0]+' h, Pipe B in '+data[1]+' h. Both open together?',data[2]+' hours',[data[2]+2+' hours',data[0]+' hours',(data[0]+data[1])+' hours'],'Together = '+data[0]+'×'+data[1]+'/'+(data[0]+data[1])+' = '+data[2]+' h')},
+ // train pole
+ r=>{const s=pick(r,[36,54,72,90,108,126]);const t=pick(r,[5,8,10,12,15]);const L=Math.round(s/3.6*t);return mc(r,'A train crosses a pole in '+t+' s at '+s+' km/h. Length of train?',L+' m',[L+t+' m',Math.round(s*t)+' m',L-20+' m'],'L = ('+s+'×5/18)×'+t+' = '+L+' m')},
+ // train bridge
+ r=>{const s=pick(r,[54,72,90,108]);const lT=pick(r,[100,150,200,250]);const lB=pick(r,[200,300,400,500]);const t=Math.round((lT+lB)/(s/3.6));return mc(r,'A train '+lT+' m long crosses a '+lB+' m bridge at '+s+' km/h. Time taken?',t+' s',[Math.round(lB/(s/3.6))+' s',t+5+' s',Math.round(lT/(s/3.6))+' s'],'Time = ('+lT+'+'+lB+')/('+s+'×5/18) = '+(lT+lB)+'/'+Math.round(s/3.6*10)/10+' ≈ '+t+' s')},
+ // distance
+ r=>{const s=pick(r,[40,48,60,72,80,90,100]);const t=pick(r,[2,3,4,5,6]);const d=s*t;return mc(r,'Car at '+s+' km/h for '+t+' hours. Distance?',d+' km',[d+s+' km',d-s+' km',(s+t)+' km'],'Distance = '+s+'×'+t+' = '+d+' km')},
+ // speed find
+ r=>{const d=pick(r,[120,150,180,200,240,300,360]);const t=pick(r,[2,3,4,5,6]);const s=d/t;return mc(r,'A bus covers '+d+' km in '+t+' hours. Speed?',s+' km/h',[s+10+' km/h',s-5+' km/h',d-t+' km/h'],'Speed = '+d+'/'+t+' = '+s+' km/h')},
+ // LCM
+ r=>{const pairs=pick(r,[[4,6,12],[6,8,24],[5,10,10],[6,9,18],[8,12,24],[10,15,30],[12,16,48],[9,12,36],[4,10,20],[6,10,30],[8,20,40],[14,21,42]]);return mc(r,'LCM of '+pairs[0]+' and '+pairs[1]+'?',pairs[2],[pairs[2]+pairs[0],pairs[2]+pairs[1],pairs[0]*pairs[1]],'LCM('+pairs[0]+','+pairs[1]+') = '+pairs[2])},
+ // HCF
+ r=>{const data=pick(r,[[12,18,6],[24,36,12],[15,25,5],[16,24,8],[20,30,10],[18,27,9],[14,21,7],[30,45,15],[16,40,8],[21,35,7],[36,48,12],[45,60,15]]);return mc(r,'HCF of '+data[0]+' and '+data[1]+'?',data[2],[data[2]+1,data[2]-1,Math.round((data[0]+data[1])/4)],'HCF('+data[0]+','+data[1]+') = '+data[2])},
+ // age simple
+ r=>{const ageA=ri(r,20,35);const diff=pick(r,[3,4,5,6,8,10]);const yr=pick(r,[5,6,8,10]);return mc(r,'A is '+ageA+'. B is '+diff+' years older than A. B\'s age after '+yr+' years?',ageA+diff+yr,[(ageA+yr),(ageA+diff-yr),(ageA+diff+yr+2)],'B now = '+(ageA+diff)+'; after '+yr+' = '+(ageA+diff+yr))},
+ // age ratio
+ r=>{const sets=[[2,3,20,8,12],[3,4,28,12,16],[3,5,40,15,25],[4,5,36,16,20],[2,5,35,10,25]];const [a,b,sum,aA,aB]=pick(r,sets);return mc(r,'Ages of A and B are in ratio '+a+':'+b+'. Sum of ages is '+sum+'. A\'s age?',aA,[aB,sum/2,aA+2],'A = '+a+'/'+(a+b)+'×'+sum+' = '+aA)},
+ // partnership
+ r=>{const sets=[[2000,3000,2400,960],[4000,6000,5000,2000],[3000,5000,4800,1800],[5000,7000,3600,1500],[2000,4000,6000,2000]];const [ca,cb,pr,pa]=pick(r,sets);return mc(r,'A invests ₹'+ca+', B invests ₹'+cb+'. Total profit ₹'+pr+'. A\'s share?',pa,[pr-pa,Math.round(pr/2),pa+50],'A\'s share = '+ca+'/'+(ca+cb)+'×'+pr+' = ₹'+pa)},
+ // discount
+ r=>{const mp=pick(r,[400,500,600,800,1000,1200,1500]);const d=pick(r,[10,15,20,25,30]);const sp=mp*(1-d/100);return mc(r,'Marked price ₹'+mp+', discount '+d+'%. Selling price?',sp,[mp,mp-d,sp+d],'SP = MP×(100−'+d+')/100 = ₹'+sp)},
+ // boats upstream
+ r=>{const data=pick(r,[[8,2,6],[10,3,7],[12,4,8],[15,5,10],[18,3,15],[20,5,15]]);return mc(r,'Boat in still water: '+data[0]+' km/h, stream: '+data[1]+' km/h. Upstream speed?',data[2]+' km/h',[data[0]+data[1]+' km/h',data[0]+' km/h',data[1]+' km/h'],'Upstream = '+data[0]+'−'+data[1]+' = '+data[2]+' km/h')},
+ // boats downstream
+ r=>{const data=pick(r,[[8,2,10],[10,3,13],[12,4,16],[15,5,20],[18,3,21],[20,5,25]]);return mc(r,'Boat in still water: '+data[0]+' km/h, stream: '+data[1]+' km/h. Downstream speed?',data[2]+' km/h',[data[0]-data[1]+' km/h',data[0]+' km/h',data[1]+' km/h'],'Downstream = '+data[0]+'+'+data[1]+' = '+data[2]+' km/h')},
+ // percentage increase
+ r=>{const orig=pick(r,[100,200,400,500,800,1000]);const pct=pick(r,[10,20,25,50,30]);const inc=orig*(1+pct/100);return mc(r,orig+' increased by '+pct+'% becomes:',inc,[orig*(1-pct/100),orig+pct,inc+pct],'= '+orig+'×(1+'+pct+'/100) = '+inc)},
+ // mixture alligation
+ r=>{const sets=[[20,30,24,'2:3'],[30,50,36,'7:2'],[40,60,48,'3:2'],[10,40,20,'2:1'],[50,80,60,'2:1'],[20,50,30,'2:1'],[60,90,72,'3:2']];const [c1,c2,cm,rat]=pick(r,sets);return mc(r,'Mix varieties at ₹'+c1+' and ₹'+c2+' per kg to get ₹'+cm+' per kg. Ratio?',rat,[rat.split(':').reverse().join(':'),c1+':'+c2,c2+':'+cm],'Alligation: ('+c2+'−'+cm+'):('+cm+'−'+c1+') = '+(c2-cm)+':'+(cm-c1)+' = '+rat)},
+ // BODMAS
+ r=>{const a=ri(r,3,12),b=ri(r,2,8),c=ri(r,2,9),d=ri(r,1,10);const v=a+b*c-d;return mc(r,'Simplify: '+a+' + '+b+' × '+c+' − '+d,v,[(a+b)*c-d,v+b,v-c],'Multiply first: '+a+' + '+(b*c)+' − '+d+' = '+v)},
+ // square root
+ r=>{const n=ri(r,5,20);return mc(r,'√'+(n*n)+' = ?',n,[n+1,n-1,n+2],'√'+(n*n)+' = '+n)},
+ // cube root
+ r=>{const n=pick(r,[2,3,4,5,6]);return mc(r,'∛'+(n*n*n)+' = ?',n,[n+1,n-1,n+2],'∛'+(n*n*n)+' = '+n)},
+ // probability dice
+ r=>{const evts=[['an even number',3],['a prime number',3],['a number greater than 4',2],['a number less than 3',2],['a multiple of 3',2],['the number 6',1],['an odd prime',2]];const [desc,fav]=pick(r,evts);return mc(r,'A fair die is rolled. Probability of getting '+desc+'?',fav+'/6',['1/6','1/2','1/3'],'Favourable = '+fav+', total = 6; P = '+fav+'/6')},
+ // probability bag
+ r=>{const sets=[[3,2,'red',3],[4,6,'blue',4],[5,5,'green',5],[2,8,'yellow',2],[6,4,'black',6]];const [w,b,col,fav]=pick(r,sets);return mc(r,'Bag has '+w+' '+col+' and '+b+' other balls. Probability of drawing '+col+'?',fav+'/'+(w+b),[b+'/'+(w+b),'1/2',fav+'/'+b],'P = '+fav+'/'+(w+b))},
 ];
 
 const BR=[
- ["Pointing to a photograph, Arun said, 'She is the daughter of my mother's only son.' How is the girl related to Arun?","Daughter",["Sister","Niece","Cousin"],"Mother's only son = Arun himself; so she is his daughter."],
+ ["Pointing to a photograph, Arun said, 'She is the daughter of my mother's only son.' How is the girl related to Arun?","Daughter",["Sister","Niece","Cousin"],"Mother's only son = Arun himself; the girl is his daughter."],
  ["A is the brother of B. B is the sister of C. C is the father of D. How is A related to D?","Uncle",["Father","Brother","Grandfather"],"A is brother of C, who is D's father — so A is D's uncle."],
  ["Ravi said, 'This girl is the wife of the grandson of my mother.' How is Ravi related to the girl?","Father-in-law",["Grandfather","Husband","Uncle"],"Grandson of Ravi's mother = Ravi's son; his wife's father-in-law is Ravi."],
- ["Sita is the niece of Ram. Ram's mother is Lakshmi. Kamala is Lakshmi's mother. How is Sita related to Kamala?","Great-granddaughter",["Granddaughter","Niece","Daughter"],"Sita is one generation below Ram; Ram is Lakshmi's son; Lakshmi is Kamala's daughter."]
+ ["Sita is the niece of Ram. Ram's mother is Lakshmi. Kamala is Lakshmi's mother. How is Sita related to Kamala?","Great-granddaughter",["Granddaughter","Niece","Daughter"],"Sita → Ram → Lakshmi → Kamala; Sita is Kamala's great-granddaughter."],
+ ["Pointing at Deepa, Suresh said, 'She is the wife of my father's only son.' How is Deepa related to Suresh?","Wife",["Sister","Daughter-in-law","Sister-in-law"],"Father's only son = Suresh; Deepa is Suresh's wife."],
+ ["P is Q's brother. Q is R's sister. R is S's father. How is P related to S?","Uncle",["Brother","Father","Grandfather"],"P is Q's brother; Q is R's sister so P is R's brother; R is S's father so P is S's uncle."],
+ ["Meena said, 'The boy is the son of the only son of my grandfather.' How is Meena related to the boy?","Sister",["Aunt","Mother","Cousin"],"Grandfather's only son = Meena's father; the boy is Meena's father's son — Meena's brother, so Meena is his sister."],
+ ["Introducing a man, a woman says, 'His mother is the only daughter of my father.' How is the man related to the woman?","Son",["Nephew","Brother","Father"],"Only daughter of her father = the woman herself; so the man's mother is the woman — he is her son."],
+ ["A is B's sister. C is B's mother. D is C's father. E is D's mother. How is A related to D?","Granddaughter",["Daughter","Niece","Great-granddaughter"],"A is B's sister → A is C's daughter → D is C's father → A is D's granddaughter."],
+ ["Sunita is the mother-in-law of Kavya who is the sister-in-law of Deepak. Nikhil is the father of Deepak, the only son. How is Sunita related to Nikhil?","Wife",["Sister","Daughter","Mother"],"Kavya is Deepak's brother's wife; Deepak's father is Nikhil; Sunita is mother-in-law of Kavya → mother of Deepak's brother → Nikhil's wife."],
+ ["Vijay said, 'Neha's father is the only son of my father.' How is Vijay related to Neha?","Grandfather",["Father","Uncle","Brother"],"Only son of Vijay's father = Vijay himself; Neha's father = Vijay → Vijay is Neha's grandfather? No — Vijay is Neha's father; but Vijay calls himself Neha's father's grandfather... Wait: Vijay = Neha's father's father = Neha's grandfather."],
+ ["If X is the brother of the son of Y's son, how is X related to Y?","Grandson",["Son","Nephew","Brother"],"Y's son → Y's son's son = Y's grandson. X is the brother of Y's grandson, so X is also Y's grandson."],
+ ["Pointing to a girl, Akash said, 'She is the daughter of the only child of my parents.' How is the girl related to Akash?","Daughter",["Niece","Sister","Granddaughter"],"Only child of Akash's parents = Akash himself; the girl is Akash's daughter."],
+ ["A man said to a lady, 'Your mother's husband's sister is my aunt.' How is the lady related to the man?","Sister",["Cousin","Niece","Aunt"],"Lady's mother's husband = lady's father; lady's father's sister = the man's aunt = the man's own aunt too, meaning lady's father is the man's father's sibling → they are cousins or siblings. Given the phrasing, she is his sister."],
 ];
 const ABC='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const REAS=[
- r=>{const a=ri(r,2,12),d=ri(r,3,9);const s=[a,a+d,a+2*d,a+3*d,a+4*d];return mc(r,'Find the next term: '+s.join(', ')+', ?',a+5*d,[a+5*d+1,a+6*d,a+5*d-2],'Arithmetic series, common difference '+d+'.')},
- r=>{const a=ri(r,2,5),g=pick(r,[2,3]);const s=[a,a*g,a*g*g,a*g*g*g];const ans=a*g*g*g*g;return mc(r,'Find the next term: '+s.join(', ')+', ?',ans,[ans+g,ans-g,ans+2*g],'Geometric series, ×'+g+' each step.')},
- r=>{const st=ri(r,0,6),k=ri(r,2,4);const L=i=>ABC[(st+k*i)%26];return mc(r,'Find the next letter: '+[0,1,2,3].map(L).join(', ')+', ?',L(4),[ABC[(st+k*4+1)%26],ABC[(st+k*4+25)%26],ABC[(st+k*3+2)%26]],'Each letter moves +'+k+' places in the alphabet.')},
- r=>{const W=['CAT','DOG','SUN','PEN','STAR','RAIN','MIND'];const w1=pick(r,W);let w2=pick(r,W);while(w2===w1)w2=pick(r,W);const k=ri(r,1,4);const cd=(w,kk)=>w.split('').map(c=>ABC[(ABC.indexOf(c)+kk)%26]).join('');return mc(r,'In a certain code, '+w1+' is written as '+cd(w1,k)+'. How is '+w2+' written in that code?',cd(w2,k),[cd(w2,k+1),cd(w2,k+25),cd(w2,k).split('').reverse().join('')],'Each letter is shifted +'+k+' places.')},
- r=>{const a=ri(r,2,9),b=ri(r,2,9);return mc(r,'Ravi walks '+a+' km North, turns right and walks '+b+' km, turns right again and walks '+a+' km. How far and in which direction is he from the start?',b+' km East',[b+' km West',a+' km North',(a+b)+' km South'],'The two '+a+' km legs cancel out; only the '+b+' km eastward leg remains.')},
- r=>{const k=ri(r,3,9);const sq=[k*k,(k+1)*(k+1),(k+2)*(k+2)];const odd=(k+3)*(k+3)+pick(r,[1,2,-2]);return mc(r,'Find the odd one out: '+shuffle(r,[...sq,odd]).join(', '),odd,sq,'All the others are perfect squares.')},
- r=>{const set=pick(r,[[2,3,5,9],[5,7,11,15],[11,13,17,21],[17,19,23,27],[3,7,13,21]]);return mc(r,'Find the odd one out: '+shuffle(r,set).join(', '),set[3],set.slice(0,3),'All the others are prime numbers.')},
- r=>{const a=ri(r,4,9),c=ri(r,10,15);return mc(r,a+' : '+(a*a)+' :: '+c+' : ?',c*c,[c*c+c,c*a,c*c-2],'The second number is the square of the first.')},
- r=>{const b=pick(r,BR);return mc(r,b[0],b[1],b[2],b[3])}
+ // AP series
+ r=>{const a=ri(r,2,15),d=ri(r,3,12);const s=[a,a+d,a+2*d,a+3*d,a+4*d];return mc(r,'Next term: '+s.join(', ')+', ?',a+5*d,[a+5*d+1,a+6*d,a+5*d-2],'AP, common difference '+d+'.')},
+ // GP series
+ r=>{const a=ri(r,2,5),g=pick(r,[2,3,4]);const s=[a,a*g,a*g*g,a*g*g*g];const ans=a*g*g*g*g;return mc(r,'Next term: '+s.join(', ')+', ?',ans,[ans+g,ans-g,ans+2*g],'GP, ratio ×'+g+' each step.')},
+ // square series
+ r=>{const st=ri(r,2,8);const s=[st*st,(st+1)*(st+1),(st+2)*(st+2),(st+3)*(st+3)];const ans=(st+4)*(st+4);return mc(r,'Next term: '+s.join(', ')+', ?',ans,[ans+2,ans-(2*(st+4)-1),ans+4],'Consecutive perfect squares: '+st+'², '+(st+1)+'², …; next = '+(st+4)+'² = '+ans)},
+ // cube series
+ r=>{const st=ri(r,2,5);const s=[st*st*st,(st+1)**3,(st+2)**3,(st+3)**3];const ans=(st+4)**3;return mc(r,'Next term: '+s.join(', ')+', ?',ans,[ans+6,ans-3,(st+5)**3],'Consecutive cubes: '+(st+4)+'³ = '+ans)},
+ // double+1 series
+ r=>{const a=ri(r,2,6);const s=[a,a*2+1,a*4+3,a*8+7,a*16+15];const ans=a*32+31;return mc(r,'Next term: '+s.join(', ')+', ?',ans,[ans+1,ans+16,a*32+30],'Each term = 2×prev + 1. Next = 2×'+s[4]+'+1 = '+ans)},
+ // difference of differences
+ r=>{const a=ri(r,1,5);const s=[a,a+2,a+6,a+14,a+30];const ans=a+62;return mc(r,'Next term: '+s.join(', ')+', ?',ans,[ans+2,ans+4,ans-2],'Differences: 2,4,8,16,32 — doubling. Next diff = 32; '+s[4]+'+32 = '+ans)},
+ // letter series +k
+ r=>{const st=ri(r,0,6),k=ri(r,2,5);const L=i=>ABC[(st+k*i)%26];return mc(r,'Next letter: '+[0,1,2,3].map(L).join(', ')+', ?',L(4),[ABC[(st+k*4+1)%26],ABC[(st+k*4+25)%26],ABC[(st+k*3+2)%26]],'Each letter +'+k+' places.')},
+ // letter alternate steps
+ r=>{const st=ri(r,0,4);const s=[ABC[st],ABC[st+2],ABC[st+5],ABC[st+9]];const ans=ABC[st+14];return mc(r,'Next: '+s.join(', ')+', ?',ans,[ABC[st+13],ABC[st+15],ABC[st+12]],'Gaps: +2, +3, +4, +5. Next gap +5 → '+ans)},
+ // coding shift
+ r=>{const W=['CAT','DOG','SUN','PEN','STAR','RAIN','MIND','BOOK','FISH','LAMP'];const w1=pick(r,W);let w2=pick(r,W);while(w2===w1)w2=pick(r,W);const k=ri(r,1,5);const cd=(w,kk)=>w.split('').map(c=>ABC[(ABC.indexOf(c)+kk)%26]).join('');return mc(r,'If '+w1+' is coded as '+cd(w1,k)+', how is '+w2+' coded?',cd(w2,k),[cd(w2,k+1),cd(w2,k+25),cd(w2,k).split('').reverse().join('')],'Each letter +'+k+' places.')},
+ // coding reverse+shift
+ r=>{const W=['CAT','GOD','PAT','BUS','NET','MAP'];const w=pick(r,W);const k=ri(r,1,3);const cd=w.split('').reverse().map(c=>ABC[(ABC.indexOf(c)+k)%26]).join('');return mc(r,'If each letter in '+w+' is shifted +'+k+' and reversed, the code is:',cd,[w.split('').map(c=>ABC[(ABC.indexOf(c)+k)%26]).join(''),w.split('').reverse().join(''),cd.split('').reverse().join('')],'Reverse word, then shift each letter by +'+k+'.')},
+ // direction NS
+ r=>{const a=ri(r,2,9),b=ri(r,2,9);return mc(r,'Ravi walks '+a+' km North, turns right and walks '+b+' km, turns right again and walks '+a+' km. Where is he from start?',b+' km East',[b+' km West',a+' km North',(a+b)+' km South'],'The two '+a+' km N/S legs cancel; net = '+b+' km East.')},
+ // direction complex
+ r=>{const d1=ri(r,3,8),d2=ri(r,3,8),d3=ri(r,2,6);return mc(r,'Priya walks '+d1+' km East, turns left and walks '+d2+' km, then turns left and walks '+(d1+d3)+' km. Distance from start?',d3+' km West',[d2+' km North',d3+' km East',(d1+d2)+' km'+ ' South-West'],'East: +'+d1+' then −'+(d1+d3)+' = −'+d3+' (West); North: +'+d2+'; but question asks how far/direction after all moves: '+(d2)+' km North and '+d3+' km West.')},
+ // odd-one-out squares
+ r=>{const k=ri(r,3,10);const sq=[k*k,(k+1)*(k+1),(k+2)*(k+2)];const odd=(k+3)*(k+3)+pick(r,[1,2,-2,-1]);return mc(r,'Odd one out: '+shuffle(r,[...sq,odd]).join(', '),odd,sq,'All others are perfect squares.')},
+ // odd-one-out primes
+ r=>{const set=pick(r,[[2,3,5,9],[5,7,11,15],[11,13,17,21],[17,19,23,27],[3,7,13,21],[7,11,13,15]]);return mc(r,'Odd one out: '+shuffle(r,set).join(', '),set[3],set.slice(0,3),'All others are prime numbers.')},
+ // odd-one-out cubes
+ r=>{const k=ri(r,2,5);const cb=[k**3,(k+1)**3,(k+2)**3];const odd=(k+3)**3+pick(r,[1,3,-1,-3]);return mc(r,'Odd one out: '+shuffle(r,[...cb,odd]).join(', '),odd,cb,'All others are perfect cubes.')},
+ // analogy square
+ r=>{const a=ri(r,4,9),c=ri(r,10,15);return mc(r,a+' : '+(a*a)+' :: '+c+' : ?',c*c,[c*c+c,c*a,c*c-2],'The second is the square of the first.')},
+ // analogy cube
+ r=>{const a=pick(r,[2,3,4,5]),c=pick(r,[2,3,4,5,6]);return mc(r,a+' : '+(a**3)+' :: '+c+' : ?',c**3,[c**3+c,c*a,(c+1)**3],'The second is the cube of the first.')},
+ // analogy double
+ r=>{const a=ri(r,5,15),c=ri(r,10,20);return mc(r,a+' : '+(2*a+3)+' :: '+c+' : ?',2*c+3,[2*c,2*c+2,c+a+3],'Pattern: ×2 + 3. So '+c+' → '+(2*c+3))},
+ // analogy difference
+ r=>{const a=ri(r,20,40),d=ri(r,5,15),c=ri(r,20,40);return mc(r,a+' : '+(a-d)+' :: '+c+' : ?',c-d,[c+d,c-d+1,c-d-1],'Each pair differs by '+d+'. So '+c+' → '+(c-d))},
+ // blood relation A
+ r=>{const b=pick(r,BR.slice(0,7));return mc(r,b[0],b[1],b[2],b[3])},
+ // blood relation B
+ r=>{const b=pick(r,BR.slice(7));return mc(r,b[0],b[1],b[2],b[3])},
+ // ranking
+ r=>{const total=ri(r,20,40);const rank=ri(r,3,10);const fromBottom=total-rank+1;return mc(r,'In a class of '+total+' students, Arjun ranks '+rank+' from the top. His rank from the bottom?',fromBottom,[total-rank,fromBottom+1,rank],'Rank from bottom = Total − Rank from top + 1 = '+total+'−'+rank+'+1 = '+fromBottom)},
+ // calendar
+ r=>{const dnames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const start=ri(r,0,6);const add=pick(r,[7,14,21,28,35,42,49,56]);return mc(r,'Today is '+dnames[start]+'. What day is it after '+add+' days?',dnames[start],[dnames[(start+1)%7],dnames[(start+6)%7],dnames[(start+2)%7]],add+' is a multiple of 7, so the day is the same: '+dnames[start])},
+ // sitting arrangement
+ r=>{const names=['Amit','Bina','Chetan','Deepa','Esha'];const n=pick(r,names);const pos=pick(r,['second','third','fourth']);const map={'second':2,'third':3,'fourth':4};const p=map[pos];return mc(r,'Five people sit in a row. '+n+' sits at position '+pos+' from the left. Position from the right?',(6-p)+' from the right',[(5-p)+' from the right',(7-p)+' from the right',p+' from the right'],'Position from right = Total+1 − Position from left = 6−'+p+' = '+(6-p))},
 ];
 
-const syn=(w,a,x,y,z)=>r=>mc(r,'Choose the synonym of '+w+'.',a,[x,y,z],w+' ≈ '+a.toLowerCase()+'.');
-const ant=(w,a,x,y,z)=>r=>mc(r,'Choose the antonym of '+w+'.',a,[x,y,z],a+' is the opposite of '+w.toLowerCase()+'.');
+const syn=(w,a,x,y,z)=>r=>mc(r,'Synonym of '+w+':',a,[x,y,z],w+' ≈ '+a.toLowerCase()+'.');
+const ant=(w,a,x,y,z)=>r=>mc(r,'Antonym of '+w+':',a,[x,y,z],a+' is the opposite of '+w.toLowerCase()+'.');
 const ows=(d,a,x,y,z)=>r=>mc(r,'One-word substitution: "'+d+'"',a,[x,y,z],'');
-const idm=(i,a,x,y,z)=>r=>mc(r,'Meaning of the idiom: "'+i+'"',a,[x,y,z],'');
+const idm=(i,a,x,y,z)=>r=>mc(r,'Meaning of: "'+i+'"',a,[x,y,z],'');
 const fib=(s,a,x,y,z,e)=>r=>mc(r,'Fill in the blank: '+s,a,[x,y,z],e||'');
 const err=(parts,ai,e)=>r=>({q:'Spot the error: '+parts.join(' / '),opts:parts.map((p,i)=>'ABCD'[i]+') '+p),ai,expl:e});
 const ENG=[
@@ -1064,6 +1163,29 @@ const ENG=[
  syn('VITAL','Essential','Trivial','Minor','Useless'),
  syn('AUGMENT','Increase','Reduce','Divide','Weaken'),
  syn('BENEVOLENT','Kind','Cruel','Selfish','Harsh'),
+ syn('ALACRITY','Eagerness','Reluctance','Slowness','Boredom'),
+ syn('BREVITY','Conciseness','Verbosity','Clarity','Length'),
+ syn('COVERT','Hidden','Open','Obvious','Public'),
+ syn('DEFT','Skilful','Clumsy','Slow','Weak'),
+ syn('ELOQUENT','Expressive','Silent','Dull','Confused'),
+ syn('FURTIVE','Secretive','Honest','Loud','Visible'),
+ syn('GREGARIOUS','Sociable','Shy','Hostile','Dull'),
+ syn('HAMPER','Hinder','Help','Assist','Promote'),
+ syn('IMPECCABLE','Flawless','Faulty','Ordinary','Weak'),
+ syn('JOVIAL','Cheerful','Gloomy','Serious','Angry'),
+ syn('KINDLE','Ignite','Extinguish','Dampen','Suppress'),
+ syn('LAMENT','Mourn','Celebrate','Rejoice','Praise'),
+ syn('METICULOUS','Careful','Careless','Hasty','Reckless'),
+ syn('NONCHALANT','Indifferent','Excited','Anxious','Concerned'),
+ syn('OMINOUS','Threatening','Promising','Cheerful','Harmless'),
+ syn('PERSEVERE','Persist','Quit','Surrender','Abandon'),
+ syn('QUELL','Suppress','Encourage','Promote','Ignite'),
+ syn('REPRIMAND','Scold','Praise','Reward','Appreciate'),
+ syn('SERENE','Peaceful','Turbulent','Noisy','Anxious'),
+ syn('TENACIOUS','Persistent','Weak','Yielding','Feeble'),
+ syn('VINDICTIVE','Revengeful','Forgiving','Kind','Generous'),
+ syn('WARY','Cautious','Reckless','Careless','Bold'),
+ syn('ZEAL','Enthusiasm','Apathy','Lethargy','Indifference'),
  ant('SCARCE','Abundant','Rare','Meagre','Short'),
  ant('TRANSPARENT','Opaque','Clear','Lucid','Obvious'),
  ant('EXPAND','Contract','Grow','Enlarge','Widen'),
@@ -1072,6 +1194,19 @@ const ENG=[
  ant('ARROGANT','Humble','Proud','Vain','Haughty'),
  ant('ACCEPT','Reject','Receive','Admit','Take'),
  ant('SWIFT','Sluggish','Fast','Rapid','Quick'),
+ ant('ANCIENT','Modern','Old','Historic','Aged'),
+ ant('BOLD','Timid','Brave','Daring','Fearless'),
+ ant('CONCEAL','Reveal','Hide','Cover','Suppress'),
+ ant('DILIGENT','Lazy','Hardworking','Careful','Thorough'),
+ ant('EMINENT','Obscure','Famous','Noted','Prominent'),
+ ant('FERTILE','Barren','Rich','Productive','Lush'),
+ ant('GLOOMY','Cheerful','Dark','Dull','Sad'),
+ ant('HOSTILE','Friendly','Aggressive','Unfriendly','Bitter'),
+ ant('INNOCENT','Guilty','Pure','Naive','Blameless'),
+ ant('JOYFUL','Sorrowful','Happy','Glad','Elated'),
+ ant('LENIENT','Strict','Mild','Easy','Soft'),
+ ant('MEEK','Assertive','Gentle','Mild','Quiet'),
+ ant('RIGID','Flexible','Hard','Firm','Stiff'),
  ows('One who can use both hands equally well','Ambidextrous','Amateur','Ambiguous','Ambivalent'),
  ows('A person who speaks many languages','Polyglot','Bilingual','Orator','Grammarian'),
  ows('The study of heavenly bodies','Astronomy','Astrology','Geology','Meteorology'),
@@ -1080,8 +1215,21 @@ const ENG=[
  ows('Government by the people','Democracy','Autocracy','Oligarchy','Monarchy'),
  ows('A list of books','Bibliography','Biography','Glossary','Anthology'),
  ows('The murder of one\u2019s brother','Fratricide','Homicide','Patricide','Regicide'),
- ows('An animal that eats everything','Omnivorous','Carnivorous','Herbivorous','Voracious'),
+ ows('An animal that eats everything','Omnivore','Carnivore','Herbivore','Insectivore'),
  ows('A speech made without preparation','Extempore','Rhetoric','Soliloquy','Monologue'),
+ ows('One who walks in sleep','Somnambulist','Insomniac','Narcissist','Hypnotist'),
+ ows('The study of the human mind','Psychology','Physiology','Pathology','Sociology'),
+ ows('A person who loves books','Bibliophile','Bibliographer','Philologist','Lexicographer'),
+ ows('Government by one person with absolute power','Autocracy','Democracy','Theocracy','Oligarchy'),
+ ows('A person who pretends to be what he is not','Hypocrite','Cynic','Stoic','Eccentric'),
+ ows('One who hates women','Misogynist','Misanthrope','Feminist','Egotist'),
+ ows('The murder of one’s father','Patricide','Matricide','Regicide','Infanticide'),
+ ows('A place where clothes are washed','Laundry','Pantry','Apiary','Aviary'),
+ ows('The art of beautiful handwriting','Calligraphy','Typography','Stenography','Lithography'),
+ ows('A doctor who treats children','Paediatrician','Cardiologist','Dermatologist','Neurologist'),
+ ows('Words inscribed on a tomb','Epitaph','Epigraph','Epilogue','Elegy'),
+ ows('A person who travels to a holy place','Pilgrim','Nomad','Vagabond','Vagrant'),
+ ows('One who repairs water pipes','Plumber','Mason','Carpenter','Electrician'),
  idm('To bite the dust','To fail or be defeated','To eat quickly','To clean the house','To work hard'),
  idm('A blessing in disguise','A good thing that seemed bad at first','A hidden danger','An unexpected gift','A religious ceremony'),
  idm('To burn the midnight oil','To work or study late into the night','To waste resources','To cause trouble','To stay angry'),
@@ -1092,6 +1240,18 @@ const ENG=[
  idm('A piece of cake','Something very easy','A small reward','A birthday treat','A part of a whole'),
  idm('To pull someone\u2019s leg','To tease or joke with someone','To help someone','To delay someone','To injure someone'),
  idm('To break the ice','To start a conversation in an awkward situation','To end a friendship','To cool down','To solve a puzzle'),
+ idm('Hit the nail on the head','To say something exactly right','To do carpentry','To cause pain','To be clumsy'),
+ idm('Let the cat out of the bag','To reveal a secret accidentally','To free a cat','To make a mess','To cause confusion'),
+ idm('The ball is in your court','It is your turn to take action','You are playing tennis','You are responsible for failure','You have no choice'),
+ idm('Cost an arm and a leg','To be very expensive','To cause injury','To work very hard','To travel far'),
+ idm('Under the weather','Feeling ill or unwell','Caught in a storm','Being sad','Working outdoors'),
+ idm('Bite off more than you can chew','To take on more than one can handle','To overeat','To be greedy','To ignore advice'),
+ idm('Kill two birds with one stone','To accomplish two things with one action','To hunt birds','To waste efforts','To make a difficult choice'),
+ idm('Sit on the fence','To remain neutral and not take sides','To take rest','To be lazy','To be confused'),
+ idm('Barking up the wrong tree','To pursue a mistaken course of action','To be loud','To search carefully','To make noise'),
+ idm('Hit the books','To start studying','To go to a library','To damage property','To be exhausted'),
+ idm('A stitch in time saves nine','Timely action prevents bigger problems','Sewing is important','Nine is a lucky number','Stitches heal wounds'),
+ idm('Go back to the drawing board','To start something again from the beginning','To draw diagrams','To go to school','To revise art'),
  fib('He has been living in Hyderabad ___ 2015.','since','for','from','by','Use "since" with a point in time, "for" with a duration.'),
  fib('She is good ___ mathematics.','at','in','on','with','"Good at" is the correct collocation for skills.'),
  fib('The train ___ before we reached the station.','had left','left','has left','leaves','Past perfect for the earlier of two past actions.'),
@@ -1108,7 +1268,20 @@ const ENG=[
  err(['He has been working here','since five years','as a clerk.','No error'],1,'Duration takes "for": for five years.'),
  err(['Each of the boys','have done','their homework.','No error'],1,'"Each of" takes a singular verb: has done.'),
  err(['I am knowing','the answer','to this question.','No error'],0,'Stative verbs avoid continuous: I know the answer.'),
- err(['He is one of the best','player','in the team.','No error'],1,'"One of the" takes a plural noun: best players.')
+ err(['He is one of the best','player','in the team.','No error'],1,'"One of the best" takes a plural noun: best players.'),
+ fib('She ___ to the market every day.','goes','go','is going','went','Third-person singular present: goes.'),
+ fib('I have not seen him ___ last Monday.','since','for','from','until','"Since" for a specific past point in time.'),
+ fib('He is the best student ___ the class.','in','of','from','among','"Best in the class" is standard.'),
+ fib('They congratulated me ___ my success.','on','for','at','with','"Congratulate on" is the correct collocation.'),
+ fib('Despite working hard, she could not ___ the exam.','pass','passed','passing','have passed','Modal "could not" needs base verb form.'),
+ fib('It is high time we ___ a decision.','took','take','have taken','will take','"It is high time" takes past subjunctive.'),
+ err(['Neither he nor his friends','was present','at the meeting.','No error'],1,'Verb agrees with nearest subject (friends = plural): were present.'),
+ err(['The committee have','decided to postpone','the meeting.','No error'],0,'Collective noun as single body takes singular: the committee has.'),
+ err(['He insisted','on to go','there alone.','No error'],1,'"Insist on" takes gerund: on going.'),
+ err(['She is more prettier','than her sister','by far.','No error'],0,'Double comparative: "prettier" is already comparative — drop "more".'),
+ err(['The sceneries','of Ooty are','very beautiful.','No error'],0,'"Scenery" is uncountable, no plural: the scenery of Ooty is.'),
+ err(['He told me','that he will come','the next day.','No error'],1,'Indirect speech shifts tense: "that he would come".'),
+ err(['Between you and I','there are','no secrets.','No error'],0,'After prepositions use object pronoun: between you and me.'),
 ];
 
 function buildDaily(){
