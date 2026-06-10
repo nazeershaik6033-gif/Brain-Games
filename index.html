@@ -70,6 +70,19 @@ button{font-family:var(--sans);border:none;cursor:pointer;color:inherit}
 .row>*{flex:1}
 .hidden{display:none!important}
 
+/* duration picker (tracker-style accent cards) */
+#durGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 2px}
+.durOpt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:13px 4px 11px;
+  border-radius:16px;border:1px solid transparent;background:linear-gradient(150deg,#22252A,#1B1E22);
+  box-shadow:var(--out-sm);transition:box-shadow .14s,border-color .14s,background .14s}
+.durOpt b{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink)}
+.durOpt span{font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:lowercase;color:var(--faint)}
+.durOpt:active{box-shadow:var(--in-sm)}
+.durOpt.on{border-color:rgba(244,164,55,.45);box-shadow:var(--in-sm);
+  background:linear-gradient(135deg,rgba(244,164,55,.14) 0%,var(--el) 62%)}
+.durOpt.on b{color:var(--sun)}
+.durOpt.on span{color:var(--dim)}
+
 /* stage list */
 .stageRow{display:flex;align-items:center;gap:14px;padding:13px 2px}
 .stageNum{font-family:var(--mono);font-size:12px;color:var(--faint);width:24px}
@@ -235,13 +248,14 @@ textarea:focus{outline:none;box-shadow:var(--in),0 0 0 1.5px rgba(244,164,55,.5)
           <div class="eyebrow" id="todayDate"></div>
           <h2 class="ritual">The morning ritual</h2>
           <p class="sub" id="todaySub">~22 minutes · five stages · one clear mind</p>
-          <div style="margin-top:10px">
-            <div class="stageRow" data-st="0"><span class="stageNum">01</span><div class="nm"><b>Check in</b><span>Rate your fog before you begin</span></div><span class="tick">✓</span></div>
-            <div class="stageRow" data-st="1"><span class="stageNum">02</span><div class="nm"><b>Breathe</b><span id="brLen">5 min · box breathing</span></div><span class="tick">✓</span></div>
-            <div class="stageRow" data-st="2"><span class="stageNum">03</span><div class="nm"><b>Schulte tables</b><span>3 rounds · visual attention</span></div><span class="tick">✓</span></div>
-            <div class="stageRow" data-st="3"><span class="stageNum">04</span><div class="nm"><b>Dual N-Back</b><span id="nbLvlLbl">2 blocks · working memory</span></div><span class="tick">✓</span></div>
-            <div class="stageRow" data-st="4"><span class="stageNum">05</span><div class="nm"><b>Reflect</b><span>One prompt, your words</span></div><span class="tick">✓</span></div>
+          <div class="eyebrow" style="margin-top:16px">Session length</div>
+          <div id="durGrid">
+            <button class="durOpt" data-v="5"><b>5m</b><span>reset</span></button>
+            <button class="durOpt" data-v="10"><b>10m</b><span>focus</span></button>
+            <button class="durOpt" data-v="15"><b>15m</b><span>train</span></button>
+            <button class="durOpt" data-v="20"><b>20m+</b><span>full</span></button>
           </div>
+          <div id="stageList" style="margin-top:10px"></div>
           <button class="btn" id="btnStart">Begin today's session</button>
           <button class="btn ghost hidden" id="btnResume">Resume session</button>
         </div>
@@ -281,9 +295,7 @@ textarea:focus{outline:none;box-shadow:var(--in),0 0 0 1.5px rgba(244,164,55,.5)
               </div>
             </div>
             <div class="settRow"><span>Length</span>
-              <div class="seg" id="brMins">
-                <button data-v="3">3m</button><button data-v="5" class="on">5m</button><button data-v="7">7m</button>
-              </div>
+              <div class="seg" id="brMins"></div>
             </div>
             <button class="btn" id="btnBreathStart">Start breathing</button>
           </div>
@@ -325,7 +337,7 @@ textarea:focus{outline:none;box-shadow:var(--in),0 0 0 1.5px rgba(244,164,55,.5)
             <button class="btn" id="btnNbStart">Start block 1 of 2</button>
           </div>
           <div id="nbRun" class="hidden">
-            <div class="nbInfo"><span>N = <b id="nbN">2</b></span><span>Trial <b id="nbTrial">0</b>/<b id="nbTotal">22</b></span><span>Block <b id="nbBlock">1</b>/2</span></div>
+            <div class="nbInfo"><span>N = <b id="nbN">2</b></span><span>Trial <b id="nbTrial">0</b>/<b id="nbTotal">22</b></span><span>Block <b id="nbBlock">1</b>/<span id="nbBlockTot">2</span></span></div>
             <div id="nbGrid"></div>
             <div id="nbButtons">
               <button id="nbPos">⬛ Position</button>
@@ -462,6 +474,7 @@ textarea:focus{outline:none;box-shadow:var(--in),0 0 0 1.5px rgba(244,164,55,.5)
         <div class="settRow"><span>Schulte rounds</span>
           <div class="seg" id="setRounds"><button data-v="2">2</button><button data-v="3" class="on">3</button><button data-v="4">4</button></div>
         </div>
+        <p class="sub" style="font-size:12px;margin-top:6px">Blocks &amp; rounds apply to the 20m+ full session. The 5/10/15-minute presets scale these automatically.</p>
       </div>
       <div class="card">
         <div class="eyebrow">Data</div>
@@ -505,9 +518,30 @@ const $ = id => document.getElementById(id);
 const todayKey = () => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 
 let sessions = Store.get('udaya_sessions', []);
-let settings = Object.assign({nStart:2, blocks:2, rounds:3, nbAudio:1, brPattern:'box', brMins:5}, Store.get('udaya_settings', {}));
+let settings = Object.assign({nStart:2, blocks:2, rounds:3, nbAudio:1, brPattern:'box', brMins:5, dur:20}, Store.get('udaya_settings', {}));
 let cur = null;            // current in-progress session object
 let stage = -1;            // -1 idle, 0 checkin, 1 breath, 2 schulte, 3 nback, 4 journal, 5 checkout, 6 done
+
+/* ---- session duration presets ----
+   Every stage is scaled so the whole session fits the chosen budget:
+   5m  = 2m breath + 1 Schulte round + 1 N-Back block, journal skipped (~4:40)
+   10m = 3m breath + 2 rounds + 1 block + journal (~9:30)
+   15m = 4m breath + 3 rounds + 2 blocks + journal (~14:30)
+   20m+ = your Settings values (breath length, rounds, blocks) — the full ritual */
+function planFor(dur){
+  switch(dur){
+    case 5:  return {dur:5,  brMins:2, brChoices:[1,2,3], rounds:1, blocks:1, journal:false};
+    case 10: return {dur:10, brMins:3, brChoices:[2,3,5], rounds:2, blocks:1, journal:true};
+    case 15: return {dur:15, brMins:4, brChoices:[3,4,5], rounds:3, blocks:2, journal:true};
+    default: return {dur:20, brMins:settings.brMins, brChoices:[3,5,7], rounds:settings.rounds, blocks:settings.blocks, journal:true};
+  }
+}
+const DUR_SUBS = {
+  5:'~5 minutes · four stages · quick reset',
+  10:'~10 minutes · five stages · short & sharp',
+  15:'~15 minutes · five stages · solid training',
+  20:'~22 minutes · five stages · one clear mind'
+};
 
 const PROMPTS = [
  "What is the one thing that, if done today, would make everything else easier?",
@@ -589,17 +623,28 @@ function calcStreak(){
   }
   return streak;
 }
+function renderStageList(plan){
+  const pat = settings.brPattern==='box' ? 'box breathing' : '4·7·8';
+  const rows = [
+    {st:0, b:'Check in', s:'Rate your fog before you begin'},
+    {st:1, b:'Breathe', s:plan.brMins+' min · '+pat},
+    {st:2, b:'Schulte tables', s:plan.rounds+' round'+(plan.rounds>1?'s':'')+' · visual attention'},
+    {st:3, b:'Dual N-Back', s:plan.blocks+' block'+(plan.blocks>1?'s':'')+' · N = '+lastNLevel()}
+  ];
+  if (plan.journal) rows.push({st:4, b:'Reflect', s:'One prompt, your words'});
+  $('stageList').innerHTML = rows.map((r,i)=>
+    '<div class="stageRow" data-st="'+r.st+'"><span class="stageNum">0'+(i+1)+'</span><div class="nm"><b>'+r.b+'</b><span>'+r.s+'</span></div><span class="tick">✓</span></div>'
+  ).join('');
+}
 function refreshHome(){
   $('streakN').textContent = calcStreak();
   const d = new Date();
   $('todayDate').textContent = d.toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'long'});
-  const lastN = lastNLevel();
-  $('nbLvlLbl').textContent = settings.blocks+' blocks · N = '+lastN;
-  $('brLen').textContent = settings.brMins+' min · '+(settings.brPattern==='box'?'box breathing':'4·7·8');
+  $('todaySub').textContent = DUR_SUBS[settings.dur] || DUR_SUBS[20];
+  renderStageList(planFor(settings.dur));
   const doneToday = sessions.some(s=>s.completed && s.date===todayKey());
   $('doneToday').style.display = doneToday ? 'block' : 'none';
   $('btnStart').textContent = doneToday ? 'Run a bonus session' : "Begin today's session";
-  document.querySelectorAll('.stageRow').forEach(r=>r.classList.remove('done'));
 }
 function lastNLevel(){
   for (let i=sessions.length-1;i>=0;i--){ if (sessions[i].nNext) return sessions[i].nNext; }
@@ -608,7 +653,8 @@ function lastNLevel(){
 
 /* ================= flow ================= */
 $('btnStart').onclick = () => {
-  cur = { date: todayKey(), startedAt: Date.now(), fogPre:null, fogPost:null, sleep:null,
+  cur = { date: todayKey(), startedAt: Date.now(), dur: settings.dur, plan: planFor(settings.dur),
+          fogPre:null, fogPost:null, sleep:null,
           breath:null, schulte:[], schErrors:0, nb:[], nLevel:lastNLevel(), nNext:null,
           prompt: PROMPTS[(sessions.length) % PROMPTS.length], journal:'', completed:false };
   stage = 0; setupCheck(false); showStage();
@@ -647,13 +693,22 @@ function setupBreath(){
   $('breathSetup').classList.remove('hidden');
   $('breathRun').classList.add('hidden');
   segInit('brPattern', settings.brPattern, v=>{ settings.brPattern=v; saveSettings(); });
-  segInit('brMins', String(settings.brMins), v=>{ settings.brMins=+v; saveSettings(); });
+  const seg = $('brMins'); seg.innerHTML = '';
+  cur.plan.brChoices.forEach(m=>{
+    const b = document.createElement('button');
+    b.dataset.v = m; b.textContent = m+'m';
+    seg.appendChild(b);
+  });
+  segInit('brMins', String(cur.plan.brMins), v=>{
+    cur.plan.brMins = +v;
+    if (cur.plan.dur === 20){ settings.brMins = +v; saveSettings(); }
+  });
 }
 $('btnBreathStart').onclick = () => {
   audioCtx();
   $('breathSetup').classList.add('hidden');
   $('breathRun').classList.remove('hidden');
-  runBreath(settings.brPattern, settings.brMins*60);
+  runBreath(settings.brPattern, cur.plan.brMins*60);
 };
 function runBreath(pattern, totalSec){
   const phases = pattern==='box'
@@ -688,7 +743,7 @@ function endBreath(done){
   cur.breath = done; markStageDone(1);
   stage = 2; setupSchulte(); showStage();
 }
-$('btnBreathSkip').onclick = () => endBreath(settings.brMins*60 - parseTimer());
+$('btnBreathSkip').onclick = () => endBreath(cur.plan.brMins*60 - parseTimer());
 function parseTimer(){ const [m,s]=$('breathTimer').textContent.split(':').map(Number); return m*60+s; }
 
 /* ---- schulte ---- */
@@ -696,7 +751,7 @@ let schRound=0, schNextN=1, schStart=0, schTick=null, schErr=0;
 function setupSchulte(){ schRound = 0; cur.schulte = []; cur.schErrors = 0; startSchRound(); }
 function startSchRound(){
   schRound++; schNextN = 1; schErr = 0;
-  $('schTitle').textContent = 'Round '+schRound+' of '+settings.rounds;
+  $('schTitle').textContent = 'Round '+schRound+' of '+cur.plan.rounds;
   $('schNext').textContent='1'; $('schErr').textContent='0'; $('schTime').textContent='0.0s';
   $('schResults').classList.add('hidden');
   const g = $('schulteGrid'); g.innerHTML=''; g.style.display='grid';
@@ -722,7 +777,7 @@ function schTap(btn,n){
       $('schTimes').textContent = cur.schulte.map(x=>x+'s').join(' · ');
       $('schResults').classList.remove('hidden');
       $('schulteGrid').style.display='none';
-      $('btnSchNext').textContent = schRound >= settings.rounds ? 'Continue to N-Back' : 'Next round';
+      $('btnSchNext').textContent = schRound >= cur.plan.rounds ? 'Continue to N-Back' : 'Next round';
     }
   } else {
     schErr++; $('schErr').textContent = schErr;
@@ -730,7 +785,7 @@ function schTap(btn,n){
   }
 }
 $('btnSchNext').onclick = () => {
-  if (schRound >= settings.rounds){ markStageDone(2); stage = 3; setupNback(); showStage(); }
+  if (schRound >= cur.plan.rounds){ markStageDone(2); stage = 3; setupNback(); showStage(); }
   else startSchRound();
 };
 
@@ -739,7 +794,8 @@ let nb = null;
 function setupNback(){
   $('nbSetup').classList.remove('hidden'); $('nbRun').classList.add('hidden'); $('nbResults').classList.add('hidden');
   $('nbLvl2').textContent = cur.nLevel;
-  $('btnNbStart').textContent = 'Start block 1 of '+settings.blocks;
+  $('btnNbStart').textContent = cur.plan.blocks > 1 ? 'Start block 1 of '+cur.plan.blocks : 'Start the block';
+  $('nbBlockTot').textContent = cur.plan.blocks;
   segInit('nbAudioSeg', String(settings.nbAudio), v=>{ settings.nbAudio=+v; saveSettings(); });
   const g=$('nbGrid'); g.innerHTML=''; for(let i=0;i<9;i++){ g.appendChild(document.createElement('div')); }
 }
@@ -792,13 +848,18 @@ function nbBlockDone(){
   $('nbAccP').textContent = accP+'%'; $('nbAccS').textContent = accS+'%';
   const avg = (accP+accS)/2;
   $('nbAdvice').textContent = avg>=80 ? 'Sharp. The next session will level up.' : avg<50 ? "Tough one — tomorrow eases off a notch. That's how training works." : 'Solid block. Hold this level and push accuracy.';
-  $('btnNbNext').textContent = nb.blockNo >= settings.blocks ? 'Continue to Reflect' : 'Start block '+(nb.blockNo+1)+' of '+settings.blocks;
+  $('btnNbNext').textContent = nb.blockNo >= cur.plan.blocks
+    ? (cur.plan.journal ? 'Continue to Reflect' : 'Continue to check out')
+    : 'Start block '+(nb.blockNo+1)+' of '+cur.plan.blocks;
 }
 $('btnNbNext').onclick = () => {
-  if (nb.blockNo >= settings.blocks){
+  if (nb.blockNo >= cur.plan.blocks){
     const avg = cur.nb.reduce((a,b)=>a+(b.accP+b.accS)/2,0)/cur.nb.length;
     cur.nNext = avg>=80 ? cur.nLevel+1 : (avg<50 ? Math.max(1, cur.nLevel-1) : cur.nLevel);
-    markStageDone(3); stage = 4; $('jPrompt').textContent = cur.prompt; $('jText').value=''; showStage();
+    markStageDone(3);
+    if (cur.plan.journal){ stage = 4; $('jPrompt').textContent = cur.prompt; $('jText').value=''; }
+    else { stage = 5; setupCheck(true); }
+    showStage();
   } else startNbBlock(nb.blockNo+1);
 };
 
@@ -1219,6 +1280,7 @@ function renderDrills(){
 }
 
 /* ================= boot ================= */
+segInit('durGrid', String(settings.dur), v=>{ settings.dur = +v; saveSettings(); });
 refreshHome(); showStage();
 </script>
 </body>
